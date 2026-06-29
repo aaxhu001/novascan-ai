@@ -561,33 +561,27 @@ if analyze_btn:
 
             bullets_html = "".join(reasoning_bullets)
             
-            st.markdown(f"""
-<div class="result-card" style="border-left: 4px solid {verdict_color}; background: #1c1c1e; padding: 32px; border-radius: 18px; margin-top: 24px;">
-    <p style="color:#86868b; font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; margin:0 0 20px 0;">🔭 Scientific Assessment Report</p>
-    
-    <div style="margin-bottom: 20px;">
-        <span style="color:#86868b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Classification:</span><br>
-        <span style="font-size:1.15rem; font-weight:600; color:{verdict_color};">{class_text}</span>
-    </div>
-    
-    <div style="margin-bottom: 20px;">
-        <span style="color:#86868b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Evidence:</span><br>
-        <ul style="margin: 8px 0 0 0; color: #f5f5f7; font-size: 0.88rem; line-height: 1.8; list-style-type: none; padding-left: 0;">
-            {bullets_html}
-        </ul>
-    </div>
-    
-    <div style="margin-bottom: 20px;">
-        <span style="color:#86868b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">ML Confidence:</span><br>
-        <span style="font-size:1.15rem; font-weight:600; color:#f5f5f7;">{confidence:.1f}%</span>
-    </div>
-    
-    <div>
-        <span style="color:#86868b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Final Recommendation:</span><br>
-        <span style="font-size:1.15rem; font-weight:600; color:#f5f5f7;">{recommendation}</span>
-    </div>
+            st.markdown(f"""<div class="result-card" style="border-left: 4px solid {verdict_color}; background: #1c1c1e; padding: 32px; border-radius: 18px; margin-top: 24px;">
+<p style="color:#86868b; font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; margin:0 0 20px 0;">🔭 Scientific Assessment Report</p>
+<div style="margin-bottom: 20px;">
+<span style="color:#86868b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Classification:</span><br>
+<span style="font-size:1.15rem; font-weight:600; color:{verdict_color};">{class_text}</span>
 </div>
-""", unsafe_allow_html=True)
+<div style="margin-bottom: 20px;">
+<span style="color:#86868b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Evidence:</span><br>
+<ul style="margin: 8px 0 0 0; color: #f5f5f7; font-size: 0.88rem; line-height: 1.8; list-style-type: none; padding-left: 0;">
+{bullets_html}
+</ul>
+</div>
+<div style="margin-bottom: 20px;">
+<span style="color:#86868b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">ML Confidence:</span><br>
+<span style="font-size:1.15rem; font-weight:600; color:#f5f5f7;">{confidence:.1f}%</span>
+</div>
+<div>
+<span style="color:#86868b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Final Recommendation:</span><br>
+<span style="font-size:1.15rem; font-weight:600; color:#f5f5f7;">{recommendation}</span>
+</div>
+</div>""", unsafe_allow_html=True)
 
 
             # SHAP Explainability (backend untouched)
