@@ -508,65 +508,83 @@ if analyze_btn:
             
             # 1. Periodic Transit
             if feats.get('bls_power', 0.0) > 10.0:
-                reasoning_bullets.append(f"<li><b>✓ Periodic Transit Detected</b>: Strong periodicity found in BLS search (Power: {feats['bls_power']:.2f}).</li>")
+                reasoning_bullets.append("<li>✓ Strong BLS periodicity</li>")
             else:
-                reasoning_bullets.append(f"<li><b>⚠️ Weak Periodicity</b>: Low BLS power ({feats.get('bls_power', 0.0):.2f}). Signal may be noise or transient.</li>")
+                reasoning_bullets.append("<li>⚠️ Weak BLS periodicity</li>")
                 
-            # 2. Transit Depth
+            # 2. Secondary Eclipse
+            if sec_depth > 0.001:
+                reasoning_bullets.append(f"<li>❌ Secondary eclipse detected (Depth: {sec_depth * 100:.3f}%)</li>")
+            else:
+                reasoning_bullets.append("<li>✓ No secondary eclipse</li>")
+                
+            # 3. Transit Depth
             depth_pct = feats.get('bls_depth', 0.0) * 100
             if depth_pct < 0.01:
-                reasoning_bullets.append("<li><b>⚠️ Undetectable Transit</b>: Transit depth is too shallow to confirm.</li>")
+                reasoning_bullets.append("<li>⚠️ Transit depth undetectable</li>")
             elif depth_pct <= 3.0:
-                reasoning_bullets.append(f"<li><b>✓ Physical Radius Consistent</b>: Transit depth is {depth_pct:.3f}%, consistent with a planetary radius (Jupiter-size or smaller).</li>")
+                reasoning_bullets.append("<li>✓ Transit depth consistent with planetary transit</li>")
             elif depth_pct <= 5.0:
-                reasoning_bullets.append(f"<li><b>⚠️ Large Transit Depth</b>: Depth is {depth_pct:.3f}%. Very large planetary candidate or low-mass brown dwarf.</li>")
+                reasoning_bullets.append("<li>⚠️ Large transit depth (Potential massive planet/brown dwarf)</li>")
             else:
-                reasoning_bullets.append(f"<li><b>❌ Non-Planetary Depth</b>: Depth is {depth_pct:.3f}%. Too deep for a planet; points to a stellar companion (Eclipsing Binary).</li>")
-                
-            # 3. Secondary Eclipse
-            if sec_depth > 0.001:
-                reasoning_bullets.append(f"<li><b>❌ Secondary Eclipse Found</b>: Secondary dip of {sec_depth * 100:.3f}% detected at phase 0.5. Clear indicator of Eclipsing Binary.</li>")
-            else:
-                reasoning_bullets.append("<li><b>✓ No Secondary Eclipse</b>: No significant secondary dip detected, supporting planetary transit hypothesis.</li>")
+                reasoning_bullets.append("<li>❌ Transit depth consistent with stellar companion</li>")
                 
             # 4. Shape Symmetry
             if feats.get('skew', 0.0) < -1.0:
-                reasoning_bullets.append("<li><b>✓ U-Shaped Transit Profile</b>: High negative skewness supports a symmetric, flat-bottomed transit.</li>")
+                reasoning_bullets.append("<li>✓ Transit symmetry acceptable</li>")
             else:
-                reasoning_bullets.append("<li><b>⚠️ V-Shaped / Asymmetric Profile</b>: Transit profile indicates high grazing angle or stellar distortion.</li>")
+                reasoning_bullets.append("<li>⚠️ Asymmetric transit profile (V-shaped grazing indicator)</li>")
                 
-            # 5. Signal-to-Noise Ratio (SNR)
-            if feats.get('snr', 0.0) >= 7.0:
-                reasoning_bullets.append(f"<li><b>✓ High SNR Signal</b>: Signal-to-noise ratio is {feats['snr']:.2f}, exceeding the standard NASA threshold of 7.0.</li>")
+            # 5. Physics Validation
+            if physics_override is None:
+                reasoning_bullets.append("<li>✓ Passed physics validation</li>")
             else:
-                reasoning_bullets.append(f"<li><b>⚠️ Low SNR Signal</b>: Signal-to-noise ratio is {feats.get('snr', 0.0):.2f}. High probability of systematic noise contamination.</li>")
+                reasoning_bullets.append("<li>❌ Failed physics validation</li>")
 
-            # Final assessment
+            # Final recommendation and classification
             if prediction == 1 and physics_override is None:
-                assessment = f"<b>VERDICT: HIGH-PRIORITY EXOPLANET CANDIDATE</b><br>Passed all physical vetting tests with calibrated ML confidence of {confidence:.1f}%."
+                recommendation = "High-priority follow-up candidate"
                 verdict_color = "#30d158"
+                class_text = "Planet Candidate"
             elif prediction == 2 or physics_override == 2:
-                assessment = "<b>VERDICT: CONFIRMED ECLIPSING BINARY</b><br>Signal flagged as eclipsing binary due to secondary eclipse or non-planetary transit depth."
+                recommendation = "Classify as Eclipsing Binary companion (Stellar)"
                 verdict_color = "#ff9f0a"
+                class_text = "Eclipsing Binary"
             elif prediction == 3:
-                assessment = "<b>VERDICT: FALSE POSITIVE / INSTRUMENTAL</b><br>Classified as a false positive due to systematic noise features or transient signals."
+                recommendation = "Discard candidate (Likely false positive / variable star)"
                 verdict_color = "#ff453a"
+                class_text = "False Positive"
             else:
-                assessment = "<b>VERDICT: QUIET / STELLAR NOISE</b><br>No significant planetary transit patterns found. Consistent with quiet field star variability."
+                recommendation = "Discard candidate (Stellar activity / quiescent star)"
                 verdict_color = "#86868b"
+                class_text = "Noise"
 
             bullets_html = "".join(reasoning_bullets)
             
             st.markdown(f"""
-<div class="result-card" style="border-left: 4px solid {verdict_color}; background: #1c1c1e; padding: 24px; border-radius: 12px; margin-top: 24px;">
-    <p style="color:#86868b; font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; margin:0 0 12px 0;">🔭 Scientific Assessment Report</p>
-    <ul style="margin: 0 0 20px 0; padding-left: 20px; color: #f5f5f7; font-size: 0.88rem; line-height: 1.8;">
-        {bullets_html}
-    </ul>
-    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 16px; border-left: 4px solid {verdict_color};">
-        <p style="margin: 0; color: #f5f5f7; font-size: 0.9rem; line-height: 1.6;">
-            {assessment}
-        </p>
+<div class="result-card" style="border-left: 4px solid {verdict_color}; background: #1c1c1e; padding: 32px; border-radius: 18px; margin-top: 24px;">
+    <p style="color:#86868b; font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; margin:0 0 20px 0;">🔭 Scientific Assessment Report</p>
+    
+    <div style="margin-bottom: 20px;">
+        <span style="color:#86868b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Classification:</span><br>
+        <span style="font-size:1.15rem; font-weight:600; color:{verdict_color};">{class_text}</span>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+        <span style="color:#86868b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Evidence:</span><br>
+        <ul style="margin: 8px 0 0 0; color: #f5f5f7; font-size: 0.88rem; line-height: 1.8; list-style-type: none; padding-left: 0;">
+            {bullets_html}
+        </ul>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+        <span style="color:#86868b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">ML Confidence:</span><br>
+        <span style="font-size:1.15rem; font-weight:600; color:#f5f5f7;">{confidence:.1f}%</span>
+    </div>
+    
+    <div>
+        <span style="color:#86868b; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Final Recommendation:</span><br>
+        <span style="font-size:1.15rem; font-weight:600; color:#f5f5f7;">{recommendation}</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -575,7 +593,10 @@ if analyze_btn:
             # SHAP Explainability (backend untouched)
             st.markdown('<br><p class="section-header">&#x1F9E0; AI Explainability (SHAP)</p>', unsafe_allow_html=True)
             try:
-                explainer  = shap.TreeExplainer(model)
+                explainer_model = model
+                if hasattr(model, "calibrated_classifiers_") and len(model.calibrated_classifiers_) > 0:
+                    explainer_model = model.calibrated_classifiers_[0].estimator
+                explainer  = shap.TreeExplainer(explainer_model)
                 shap_values = explainer.shap_values(X_target)
                 feature_names = list(feats.keys())
                 if isinstance(shap_values, list):
